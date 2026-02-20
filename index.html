@@ -3,227 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>POS Pro - Full System</title>
+    <title>POS Burger PRO - Full Features</title>
     <style>
-        :root { --primary: #FF7E21; --dark: #1E272E; --bg: #F0F2F5; --card: #FFFFFF; --lineman: #00C73C; --grab: #00B14F; --danger: #FF4757; }
+        :root { --primary: #FF7E21; --dark: #1E272E; --bg: #F0F2F5; --card: #FFFFFF; --lineman: #00C73C; --grab: #00B14F; }
         body { margin: 0; font-family: 'Sarabun', sans-serif; background: var(--bg); padding-bottom: 380px; }
         header { padding: 20px; text-align: center; background: var(--card); box-shadow: 0 2px 10px rgba(0,0,0,0.05); cursor: pointer; }
-        .catbar { display: flex; overflow-x: auto; padding: 10px; gap: 8px; }
-        .cat { padding: 8px 15px; background: white; border-radius: 20px; font-size: 13px; font-weight: bold; white-space: nowrap; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .cat.active { background: var(--primary); color: white; }
+        .cat-bar { display: flex; overflow-x: auto; padding: 10px; gap: 8px; white-space: nowrap; }
+        .cat-btn { padding: 8px 15px; background: white; border-radius: 20px; font-size: 13px; font-weight: bold; border: 1px solid #ddd; }
+        .cat-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px; }
-        .btn { background: white; border-radius: 15px; padding: 20px 10px; text-align: center; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .btn:active { transform: scale(0.95); }
-        .price-tag { color: var(--primary); font-weight: 800; font-size: 18px; display: block; margin-top: 5px; }
-        .stock-tag { position: absolute; top: 5px; right: 10px; font-size: 10px; color: #999; }
+        .btn { background: white; border-radius: 15px; padding: 25px 10px; text-align: center; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .btn.out { opacity: 0.5; pointer-events: none; background: #eee; }
+        .stock-tag { position: absolute; top: 8px; right: 10px; font-size: 10px; color: #888; }
         .cart { position: fixed; bottom: 0; left: 0; right: 0; background: var(--dark); color: white; padding: 20px; border-radius: 25px 25px 0 0; z-index: 100; }
         .type-select { display: flex; gap: 5px; margin-bottom: 10px; }
-        .t-btn { flex: 1; padding: 8px; border-radius: 8px; border: none; background: #3d4e5d; color: white; font-size: 11px; }
+        .t-btn { flex: 1; padding: 10px; border-radius: 8px; border: none; background: #3d4e5d; color: white; font-size: 12px; font-weight: bold; }
         .t-btn.active[data-type="Store"] { background: var(--primary); }
         .t-btn.active[data-type="LineMan"] { background: var(--lineman); }
         .t-btn.active[data-type="Grab"] { background: var(--grab); }
-        .btn-pay { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-size: 18px; font-weight: bold; margin-top: 10px; }
+        .btn-pay { width: 100%; background: var(--primary); color: white; border: none; padding: 18px; border-radius: 12px; font-size: 20px; font-weight: bold; margin-top: 10px; }
         #manager { position: fixed; inset: 0; background: #f0f2f5; display: none; padding: 20px; overflow-y: auto; z-index: 2000; }
-        .mgr-card { background: white; padding: 15px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .mgr-card { background: white; padding: 15px; border-radius: 15px; margin-bottom: 15px; }
+        input, textarea, select { width: 100%; padding: 12px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <header onclick="openManager()">
-    <b style="font-size:22px;">🍔 <span id="display-name">BURGER SHOP</span></b><br>
-    <small>📦 จัดการคลัง / ดูยอดขาย / ตั้งค่า</small>
+    <b style="font-size:22px;">🍔 <span id="display-name">ชื่อร้านของคุณ</span></b><br>
+    <small>⚙️ ตั้งค่าเมนู / ประเภทอาหาร / ดูยอดขาย</small>
 </header>
 
-<div id="cats" class="catbar"></div>
+<div id="category-list" class="cat-bar"></div>
 <div id="menu" class="grid"></div>
 
 <div class="cart">
-    <div id="cart-list" style="font-size:12px; margin-bottom:10px; color:#bdc3c7;">🛒 เลือกรายการอาหาร...</div>
+    <div id="cart-list" style="font-size:12px; margin-bottom:10px; color:#bdc3c7;">🛒 ยังไม่มีสินค้า...</div>
     <div class="type-select">
         <button class="t-btn active" data-type="Store" onclick="setType('Store')">🏠 ร้าน</button>
         <button class="t-btn" data-type="LineMan" onclick="setType('LineMan')">🛵 LM</button>
         <button class="t-btn" data-type="Grab" onclick="setType('Grab')">🛵 Grab</button>
     </div>
+    <input type="text" id="order-no" placeholder="เลขออเดอร์เดลิเวอรี่" style="display:none; background:#3d4e5d; color:white; border:none; height:40px;">
     <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div><small>ยอดรวม</small><div style="font-size:28px; font-weight:900;">฿<span id="total-price">0</span></div></div>
-        <input type="number" id="cash" placeholder="รับเงิน" style="width:100px; padding:12px; border-radius:10px; border:none; text-align:center; font-size:18px;">
+        <div><small>ยอดรวม</small><div style="font-size:32px; font-weight:900;"><span id="total-price">0</span> ฿</div></div>
+        <input type="number" id="cash" placeholder="รับเงิน" style="width:110px; margin-bottom:0; text-align:center; font-size:20px;">
     </div>
-    <div style="display:flex; gap:10px; margin-top:10px;">
-        <button onclick="printOrder()" style="flex:1; padding:12px; border-radius:10px; border:none; background:#485460; color:white; font-weight:bold;">📋 ใบออเดอร์</button>
-        <button onclick="checkout()" class="btn-pay" style="flex:2; margin-top:0;">💰 ชำระเงิน</button>
-    </div>
+    <button onclick="checkout()" class="btn-pay">💰 ชำระเงิน & ส่งข้อมูล</button>
 </div>
 
 <div id="manager">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <h2 style="margin:0;">⚙️ ระบบจัดการร้าน</h2>
+        <h2>⚙️ ตั้งค่าร้าน</h2>
         <button onclick="closeManager()" style="padding:10px 20px; border-radius:50px; background:var(--dark); color:white; border:none;">ปิด</button>
     </div>
 
     <div class="mgr-card">
-        <h3>📊 สรุปรายรับวันนี้</h3>
-        <div id="salesSummary" style="font-size:24px; font-weight:bold; color:var(--primary);">฿0</div>
-        <button onclick="clearSales()" style="width:100%; margin-top:10px; color:red; border:1px solid red; background:none; padding:8px; border-radius:5px;">ล้างประวัติ (เริ่มวันใหม่)</button>
-    </div>
-
-    <div class="mgr-card">
-        <h3>📜 ประวัติการขาย (พิมพ์ซ้ำได้)</h3>
-        <div id="historyList"></div>
-    </div>
-
-    <div class="mgr-card">
-        <h3>➕ เพิ่มเมนู/แก้ไขคลัง</h3>
-        <input type="text" id="m-name" placeholder="ชื่อเมนู" style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box;">
-        <div style="display:flex; gap:10px; margin-bottom:10px;">
-            <input type="number" id="m-price" placeholder="ราคา" style="flex:1; padding:10px;">
-            <input type="number" id="m-stock" placeholder="สต็อก" style="flex:1; padding:10px;">
+        <h3>➕ เพิ่มเมนู & เลือกประเภท</h3>
+        <input type="text" id="m-name" placeholder="ชื่อเมนู">
+        <div style="display:flex; gap:10px;">
+            <input type="number" id="m-price" placeholder="ราคา">
+            <input type="number" id="m-stock" placeholder="สต็อก">
         </div>
-        <input type="text" id="m-cat" placeholder="หมวดหมู่" style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box;">
-        <button onclick="addItem()" style="width:100%; padding:12px; background:var(--primary); color:white; border:none; border-radius:8px; font-weight:bold;">💾 บันทึกสินค้า</button>
+        <input type="text" id="m-cat" placeholder="ประเภทอาหาร (เช่น ของทานเล่น, เครื่องดื่ม)">
+        <button onclick="addItem()" style="width:100%; padding:12px; background:var(--primary); color:white; border:none; border-radius:8px;">บันทึกเมนู</button>
     </div>
+
+    <div class="mgr-card">
+        <h3>🏠 ข้อมูลร้าน & GP</h3>
+        <input type="text" id="conf-name" placeholder="ชื่อร้าน">
+        <textarea id="conf-info" placeholder="รายละเอียดท้ายใบเสร็จ"></textarea>
+        <div style="display:flex; gap:10px;">
+            <div style="flex:1;"><small>GP LineMan (%)</small><input type="number" id="gp-lm"></div>
+            <div style="flex:1;"><small>GP Grab (%)</small><input type="number" id="gp-grab"></div>
+        </div>
+        <button onclick="saveConfig()" style="width:100%; padding:12px; background:var(--dark); color:white; border:none; border-radius:8px;">บันทึกข้อมูลร้าน</button>
+    </div>
+
     <div id="edit-list"></div>
 </div>
 
 <script>
-    // --- ⚠️ วาง URL ของ Google Sheets ตรงนี้ ---
-    const GOOGLE_URL = "https://script.google.com/macros/s/AKfycbx9zp1x7_fa-SbAKyd1mfYDcVN7G2lerzdJs3BuLJu50vxQZ2Iey_PtJriavsv_tFY/exec";
+    // ⚠️ วาง URL ลิงก์ที่ลงท้ายด้วย /exec ของคุณตรงนี้ครับ
+    const GOOGLE_URL = "https://script.google.com/macros/s/AKfycbz_3eUI0SXu4JCUo1xVLFzl4crXJKqymgaXNmw4VSPQUmBTARDgj_MiIJC65a4rI5XDqpg/exec"; 
 
-let menu = JSON.parse(localStorage.getItem("pos_full_menu") || "[]");
-    let sales = JSON.parse(localStorage.getItem("pos_full_sales") || "[]");
-    let config = JSON.parse(localStorage.getItem("pos_config") || '{"name":"BURGER SHOP", "gp_lm":30, "gp_grab":30}');
+    let menu = JSON.parse(localStorage.getItem("pos_pro_menu_v2") || "[]");
+    let sales = JSON.parse(localStorage.getItem("pos_pro_sales_v2") || "[]");
+    let config = JSON.parse(localStorage.getItem("pos_pro_config_v2") || '{"name":"ร้านเบอร์เกอร์","info":"ขอบคุณที่มาอุดหนุนครับ/ค่ะ","gp_lm":30,"gp_grab":30}');
     let cart = [];
     let currentType = "Store";
     let currentCat = "ทั้งหมด";
 
     function init() {
         document.getElementById("display-name").innerText = config.name;
+        document.getElementById("conf-name").value = config.name;
+        document.getElementById("conf-info").value = config.info;
+        document.getElementById("gp-lm").value = config.gp_lm;
+        document.getElementById("gp-grab").value = config.gp_grab;
         renderAll();
     }
 
     function setType(type) {
         currentType = type;
         document.querySelectorAll('.t-btn').forEach(b => b.classList.toggle('active', b.dataset.type === type));
+        document.getElementById("order-no").style.display = (type === "Store") ? "none" : "block";
     }
 
     function renderAll() {
         // Render Categories
         let cats = ["ทั้งหมด", ...new Set(menu.map(m => m.cat))];
-        document.getElementById("cats").innerHTML = cats.map(c => `
-            <div class="cat ${c==currentCat?'active':''}" onclick="currentCat='${c}';renderAll()">${c}</div>
+        document.getElementById("category-list").innerHTML = cats.map(c => `
+            <div class="cat-btn ${c === currentCat ? 'active' : ''}" onclick="currentCat='${c}';renderAll()">${c}</div>
         `).join("");
 
         // Render Menu
-        document.getElementById("menu").innerHTML = menu.filter(x => currentCat=="ทั้งหมด" || x.cat == currentCat).map((item, i) => `
-            <div class="btn" onclick="addToCart(${menu.indexOf(item)})">
+        document.getElementById("menu").innerHTML = menu.filter(m => currentCat === "ทั้งหมด" || m.cat === currentCat).map((item, i) => `
+            <div class="btn ${item.stock <= 0 ? 'out' : ''}" onclick="addToCart(${menu.indexOf(item)})">
                 <span class="stock-tag">คลัง: ${item.stock}</span>
-                <b>${item.name}</b>
-                <span class="price-tag">฿${item.price}</span>
-            </div>
-        `).join("");
-        updateSummary();
+                <b>${item.name}</b><br><span style="color:var(--primary)">${item.price} ฿</span>
+            </div>`).join("");
+        renderEditList();
     }
 
     function addToCart(idx) {
         if(menu[idx].stock > 0) {
-            cart.push({...menu[idx], origin: idx});
+            let existing = cart.find(c => c.originIdx === idx);
+            if(existing) { existing.qty++; } 
+            else { cart.push({...menu[idx], qty: 1, originIdx: idx}); }
             updateUI();
         } else { alert("สินค้าหมด!"); }
     }
 
     function updateUI() {
-        let total = cart.reduce((s, i) => s + i.price, 0);
+        let total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
         document.getElementById("total-price").innerText = total.toLocaleString();
-        document.getElementById("cart-list").innerText = cart.length > 0 ? "🛒 " + cart.map(i => i.name).join(", ") : "เลือกรายการอาหาร...";
+        document.getElementById("cart-list").innerText = cart.length > 0 ? "🛒 " + cart.map(i => `${i.name} x${i.qty}`).join(", ") : "ยังไม่มีสินค้า...";
     }
 
     async function checkout() {
-        let total = cart.reduce((s, i) => s + i.price, 0);
+        let total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
         if(total === 0) return;
         let cash = Number(document.getElementById("cash").value) || total;
+        let orderNo = document.getElementById("order-no").value;
 
-        // ตัดสต็อก
-        cart.forEach(item => menu[item.origin].stock--);
+        // หักสต็อก
+        cart.forEach(item => { menu[item.originIdx].stock -= item.qty; });
 
-        // คำนวณ GP
         let gp = (currentType === "LineMan") ? config.gp_lm : (currentType === "Grab" ? config.gp_grab : 0);
         let net = total * ((100-gp)/100);
 
-        let data = {
-            id: Date.now(),
+        let saleData = {
             time: new Date().toLocaleString('th-TH'),
-            items: cart.map(i => i.name).join(", "),
+            items: (orderNo ? "#"+orderNo+" " : "") + cart.map(i => `${i.name}(${i.qty})`).join(", "),
             total: total,
-            money: cash,
-            net: net,
-            type: currentType,
-            raw: [...cart]
+            type: currentType === "Store" ? "หน้าร้าน" : currentType,
+            net: net
         };
 
-        // ส่งเข้า Sheets
-        if(GOOGLE_URL !== "วาง_URL_ที่นี่") {
-            fetch(GOOGLE_URL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) });
-        }
-
-        sales.push(data);
+        fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(saleData) });
+        sales.push(saleData);
         save();
-        printReceipt(data);
+        printReceipt(saleData, orderNo);
         
         cart = []; updateUI(); renderAll();
-        document.getElementById("cash").value = "";
+        document.getElementById("cash").value = ""; document.getElementById("order-no").value = "";
     }
 
-    function printReceipt(data) {
+    function printReceipt(data, orderNo) {
         let w = window.open("", "_blank");
-        w.document.write(`<html><body style="font-family:sans-serif; width:58mm; text-align:center; padding:10px; font-size:14px;">
-            <b style="font-size:18px;">${config.name}</b><br><hr>
-            <b>[ ${data.type} ]</b><br><br>
-            ${data.raw.map(i => `<div style="display:flex;justify-content:space-between;"><span>${i.name}</span><span>${i.price}</span></div>`).join("")}
-            <hr><div style="display:flex;justify-content:space-between;font-weight:bold;"><span>ยอดรวม</span><span>฿${data.total}</span></div>
-            <div style="display:flex;justify-content:space-between;"><span>รับเงิน</span><span>฿${data.money}</span></div>
-            <div style="display:flex;justify-content:space-between;"><span>เงินทอน</span><span>฿${data.money - data.total}</span></div>
-            <hr><b>ขอบคุณที่ใช้บริการครับ/ค่ะ</b><br><small>${data.time}</small>
+        w.document.write(`<html><body style="font-family:sans-serif; width:58mm; text-align:center; padding:5px; font-size:13px;">
+            <h2 style="margin:0;">${config.name}</h2>
+            ${orderNo ? `<h1 style="background:#000; color:#fff; padding:10px; margin:5px 0;">ออเดอร์: ${orderNo}</h1>` : ""}
+            <p>ประเภท: ${data.type}</p><hr>
+            ${cart.map(i => `<div style="display:flex;justify-content:space-between;"><span>${i.name} x ${i.qty}</span><span>${(i.price * i.qty)} ฿</span></div>`).join("")}
+            <hr><b style="font-size:18px;">รวม ${data.total} ฿</b><hr>
+            <div style="margin-top:10px; font-size:11px; white-space:pre-wrap;">${config.info}</div>
+            <p style="font-size:10px; color:#999;">${data.time}</p>
             <script>window.onload=function(){window.print();window.close();}<\/script></body></html>`);
-        w.document.close();
-    }
-
-    function printOrder() {
-        if(cart.length === 0) return;
-        let w = window.open("", "_blank");
-        w.document.write(`<html><body style="font-family:sans-serif; width:58mm; text-align:center; padding:10px;">
-            <h2>🔔 ออเดอร์ [${currentType}]</h2><hr>
-            ${cart.map(i => `<h3 style="margin:5px 0;">- ${i.name}</h3>`).join("")}
-            <hr><p>${new Date().toLocaleTimeString()}</p>
-            <script>window.onload=function(){window.print();window.close();}<\/script></body></html>`);
-        w.document.close();
-    }
-
-    function updateSummary() {
-        let totalNet = sales.reduce((s, v) => s + v.net, 0);
-        document.getElementById("salesSummary").innerText = `฿${totalNet.toLocaleString()}`;
-        document.getElementById("historyList").innerHTML = sales.slice().reverse().slice(0,10).map(s => `
-            <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:10px 0;">
-                <small>${s.time.split(' ')[1]} (${s.type})</small>
-                <b>฿${s.total}</b>
-                <button onclick='printReceipt(${JSON.stringify(s)})' style="font-size:10px;">พิมพ์ซ้ำ</button>
-            </div>
-        `).join("");
     }
 
     function addItem() {
-        let n = document.getElementById("m-name").value, p = Number(document.getElementById("m-price").value), s = Number(document.getElementById("m-stock").value);
-        if(!n || !p) return;
-        menu.push({name: n, price: p, stock: s, cat: document.getElementById("m-cat").value || "ทั่วไป"});
-        save();
-        document.getElementById("m-name").value=""; document.getElementById("m-price").value="";
+        let n = document.getElementById("m-name").value, p = Number(document.getElementById("m-price").value), s = Number(document.getElementById("m-stock").value), c = document.getElementById("m-cat").value || "ทั่วไป";
+        if(n && p) { menu.push({name:n, price:p, stock:s, cat:c}); save(); renderAll(); }
     }
 
+    function renderEditList() {
+        document.getElementById("edit-list").innerHTML = menu.map((item, i) => `
+            <div class="mgr-card" style="display:flex; justify-content:space-between;">
+                <span>${item.name} (${item.cat})</span>
+                <button onclick="deleteItem(${i})" style="color:red; border:none; background:none;">ลบ</button>
+            </div>`).join("");
+    }
+
+    function deleteItem(i) { if(confirm("ลบเมนู?")) { menu.splice(i,1); save(); renderAll(); } }
+    function saveConfig() {
+        config.name = document.getElementById("conf-name").value;
+        config.info = document.getElementById("conf-info").value;
+        config.gp_lm = Number(document.getElementById("gp-lm").value);
+        config.gp_grab = Number(document.getElementById("gp-grab").value);
+        save(); init(); alert("บันทึกสำเร็จ!");
+    }
     function save() {
-        localStorage.setItem("pos_full_menu", JSON.stringify(menu));
-        localStorage.setItem("pos_full_sales", JSON.stringify(sales));
-        renderAll();
+        localStorage.setItem("pos_pro_menu_v2", JSON.stringify(menu));
+        localStorage.setItem("pos_pro_sales_v2", JSON.stringify(sales));
+        localStorage.setItem("pos_pro_config_v2", JSON.stringify(config));
     }
-
-    function clearSales() { if(confirm("เริ่มวันใหม่?")) { sales = []; save(); } }
     function openManager() { document.getElementById("manager").style.display="block"; }
     function closeManager() { document.getElementById("manager").style.display="none"; }
     init();
