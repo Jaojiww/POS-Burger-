@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>POS Burger PRO - Full Features</title>
+    <title>POS Burger PRO - Update</title>
     <style>
         :root { --primary: #FF7E21; --dark: #1E272E; --bg: #F0F2F5; --card: #FFFFFF; --lineman: #00C73C; --grab: #00B14F; }
         body { margin: 0; font-family: 'Sarabun', sans-serif; background: var(--bg); padding-bottom: 380px; }
@@ -24,14 +24,14 @@
         .btn-pay { width: 100%; background: var(--primary); color: white; border: none; padding: 18px; border-radius: 12px; font-size: 20px; font-weight: bold; margin-top: 10px; }
         #manager { position: fixed; inset: 0; background: #f0f2f5; display: none; padding: 20px; overflow-y: auto; z-index: 2000; }
         .mgr-card { background: white; padding: 15px; border-radius: 15px; margin-bottom: 15px; }
-        input, textarea, select { width: 100%; padding: 12px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; }
     </style>
 </head>
 <body>
 
 <header onclick="openManager()">
     <b style="font-size:22px;">🍔 <span id="display-name">ชื่อร้านของคุณ</span></b><br>
-    <small>⚙️ ตั้งค่าเมนู / ประเภทอาหาร / ดูยอดขาย</small>
+    <small>⚙️ ตั้งค่าร้าน / คำนวณรายรับ / จัดการสต็อก</small>
 </header>
 
 <div id="category-list" class="cat-bar"></div>
@@ -44,7 +44,7 @@
         <button class="t-btn" data-type="LineMan" onclick="setType('LineMan')">🛵 LM</button>
         <button class="t-btn" data-type="Grab" onclick="setType('Grab')">🛵 Grab</button>
     </div>
-    <input type="text" id="order-no" placeholder="เลขออเดอร์เดลิเวอรี่" style="display:none; background:#3d4e5d; color:white; border:none; height:40px;">
+    <input type="text" id="order-no" placeholder="ระบุเลขออเดอร์เดลิเวอรี่" style="display:none; background:#3d4e5d; color:white; border:none; height:40px;">
     <div style="display:flex; justify-content:space-between; align-items:center;">
         <div><small>ยอดรวม</small><div style="font-size:32px; font-weight:900;"><span id="total-price">0</span> ฿</div></div>
         <input type="number" id="cash" placeholder="รับเงิน" style="width:110px; margin-bottom:0; text-align:center; font-size:20px;">
@@ -54,42 +54,55 @@
 
 <div id="manager">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <h2>⚙️ ตั้งค่าร้าน</h2>
+        <h2>⚙️ ระบบจัดการร้าน</h2>
         <button onclick="closeManager()" style="padding:10px 20px; border-radius:50px; background:var(--dark); color:white; border:none;">ปิด</button>
     </div>
 
+    <div class="mgr-card" style="background: var(--dark); color: white;">
+        <h3 style="margin-top:0;">📊 สรุปรายรับวันนี้</h3>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #444; padding:10px 0;">
+            <span>ยอดขายรวม:</span>
+            <b id="sum-total">0 ฿</b>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:10px 0; color: var(--primary);">
+            <span>รายรับสุทธิ (หลังหัก GP):</span>
+            <b id="sum-net" style="font-size:20px;">0 ฿</b>
+        </div>
+        <button onclick="clearSales()" style="width:100%; background:none; border:1px solid #666; color:#aaa; padding:5px; border-radius:5px; margin-top:5px; font-size:12px;">ล้างข้อมูลยอดขาย</button>
+    </div>
+
     <div class="mgr-card">
-        <h3>➕ เพิ่มเมนู & เลือกประเภท</h3>
+        <h3>🏠 ตั้งค่าข้อมูลร้าน</h3>
+        <input type="text" id="conf-name" placeholder="ชื่อร้าน">
+        <textarea id="conf-desc" placeholder="รายละเอียดร้านค้า (แสดงใต้ชื่อร้านในใบเสร็จ)"></textarea>
+        <textarea id="conf-info" placeholder="ข้อความท้ายใบเสร็จ (เช่น ขอบคุณที่ใช้บริการ)"></textarea>
+        <div style="display:flex; gap:10px;">
+            <div style="flex:1;"><small>GP LineMan (%)</small><input type="number" id="gp-lm"></div>
+            <div style="flex:1;"><small>GP Grab (%)</small><input type="number" id="gp-grab"></div>
+        </div>
+        <button onclick="saveConfig()" style="width:100%; padding:12px; background:var(--dark); color:white; border:none; border-radius:8px;">บันทึกการตั้งค่า</button>
+    </div>
+
+    <div class="mgr-card">
+        <h3>🍔 เพิ่มเมนู</h3>
         <input type="text" id="m-name" placeholder="ชื่อเมนู">
         <div style="display:flex; gap:10px;">
             <input type="number" id="m-price" placeholder="ราคา">
             <input type="number" id="m-stock" placeholder="สต็อก">
         </div>
-        <input type="text" id="m-cat" placeholder="ประเภทอาหาร (เช่น ของทานเล่น, เครื่องดื่ม)">
+        <input type="text" id="m-cat" placeholder="ประเภทอาหาร">
         <button onclick="addItem()" style="width:100%; padding:12px; background:var(--primary); color:white; border:none; border-radius:8px;">บันทึกเมนู</button>
-    </div>
-
-    <div class="mgr-card">
-        <h3>🏠 ข้อมูลร้าน & GP</h3>
-        <input type="text" id="conf-name" placeholder="ชื่อร้าน">
-        <textarea id="conf-info" placeholder="รายละเอียดท้ายใบเสร็จ"></textarea>
-        <div style="display:flex; gap:10px;">
-            <div style="flex:1;"><small>GP LineMan (%)</small><input type="number" id="gp-lm"></div>
-            <div style="flex:1;"><small>GP Grab (%)</small><input type="number" id="gp-grab"></div>
-        </div>
-        <button onclick="saveConfig()" style="width:100%; padding:12px; background:var(--dark); color:white; border:none; border-radius:8px;">บันทึกข้อมูลร้าน</button>
     </div>
 
     <div id="edit-list"></div>
 </div>
 
 <script>
-    // ⚠️ วาง URL ลิงก์ที่ลงท้ายด้วย /exec ของคุณตรงนี้ครับ
     const GOOGLE_URL = "https://script.google.com/macros/s/AKfycbz_3eUI0SXu4JCUo1xVLFzl4crXJKqymgaXNmw4VSPQUmBTARDgj_MiIJC65a4rI5XDqpg/exec"; 
 
-    let menu = JSON.parse(localStorage.getItem("pos_pro_menu_v2") || "[]");
-    let sales = JSON.parse(localStorage.getItem("pos_pro_sales_v2") || "[]");
-    let config = JSON.parse(localStorage.getItem("pos_pro_config_v2") || '{"name":"ร้านเบอร์เกอร์","info":"ขอบคุณที่มาอุดหนุนครับ/ค่ะ","gp_lm":30,"gp_grab":30}');
+    let menu = JSON.parse(localStorage.getItem("pos_pro_menu_v3") || "[]");
+    let sales = JSON.parse(localStorage.getItem("pos_pro_sales_v3") || "[]");
+    let config = JSON.parse(localStorage.getItem("pos_pro_config_v3") || '{"name":"BURGER SHOP","desc":"รายละเอียดร้านค้า","info":"ขอบคุณที่อุดหนุนครับ","gp_lm":30,"gp_grab":30}');
     let cart = [];
     let currentType = "Store";
     let currentCat = "ทั้งหมด";
@@ -97,6 +110,7 @@
     function init() {
         document.getElementById("display-name").innerText = config.name;
         document.getElementById("conf-name").value = config.name;
+        document.getElementById("conf-desc").value = config.desc || "";
         document.getElementById("conf-info").value = config.info;
         document.getElementById("gp-lm").value = config.gp_lm;
         document.getElementById("gp-grab").value = config.gp_grab;
@@ -110,18 +124,14 @@
     }
 
     function renderAll() {
-        // Render Categories
         let cats = ["ทั้งหมด", ...new Set(menu.map(m => m.cat))];
-        document.getElementById("category-list").innerHTML = cats.map(c => `
-            <div class="cat-btn ${c === currentCat ? 'active' : ''}" onclick="currentCat='${c}';renderAll()">${c}</div>
-        `).join("");
-
-        // Render Menu
+        document.getElementById("category-list").innerHTML = cats.map(c => `<div class="cat-btn ${c === currentCat ? 'active' : ''}" onclick="currentCat='${c}';renderAll()">${c}</div>`).join("");
         document.getElementById("menu").innerHTML = menu.filter(m => currentCat === "ทั้งหมด" || m.cat === currentCat).map((item, i) => `
             <div class="btn ${item.stock <= 0 ? 'out' : ''}" onclick="addToCart(${menu.indexOf(item)})">
                 <span class="stock-tag">คลัง: ${item.stock}</span>
                 <b>${item.name}</b><br><span style="color:var(--primary)">${item.price} ฿</span>
             </div>`).join("");
+        updateSummary();
         renderEditList();
     }
 
@@ -131,7 +141,7 @@
             if(existing) { existing.qty++; } 
             else { cart.push({...menu[idx], qty: 1, originIdx: idx}); }
             updateUI();
-        } else { alert("สินค้าหมด!"); }
+        }
     }
 
     function updateUI() {
@@ -146,9 +156,7 @@
         let cash = Number(document.getElementById("cash").value) || total;
         let orderNo = document.getElementById("order-no").value;
 
-        // หักสต็อก
         cart.forEach(item => { menu[item.originIdx].stock -= item.qty; });
-
         let gp = (currentType === "LineMan") ? config.gp_lm : (currentType === "Grab" ? config.gp_grab : 0);
         let net = total * ((100-gp)/100);
 
@@ -164,7 +172,6 @@
         sales.push(saleData);
         save();
         printReceipt(saleData, orderNo);
-        
         cart = []; updateUI(); renderAll();
         document.getElementById("cash").value = ""; document.getElementById("order-no").value = "";
     }
@@ -173,12 +180,13 @@
         let w = window.open("", "_blank");
         w.document.write(`<html><body style="font-family:sans-serif; width:58mm; text-align:center; padding:5px; font-size:13px;">
             <h2 style="margin:0;">${config.name}</h2>
-            ${orderNo ? `<h1 style="background:#000; color:#fff; padding:10px; margin:5px 0;">ออเดอร์: ${orderNo}</h1>` : ""}
-            <p>ประเภท: ${data.type}</p><hr>
+            <div style="font-size:10px; margin-bottom:5px;">${config.desc}</div>
+            ${orderNo ? `<div style="font-size:24px; font-weight:bold; margin:10px 0; border:2px solid #000; padding:5px;">ออเดอร์: ${orderNo}</div>` : ""}
+            <p style="margin:2px 0;">ช่องทาง: ${data.type}</p><hr>
             ${cart.map(i => `<div style="display:flex;justify-content:space-between;"><span>${i.name} x ${i.qty}</span><span>${(i.price * i.qty)} ฿</span></div>`).join("")}
-            <hr><b style="font-size:18px;">รวม ${data.total} ฿</b><hr>
+            <hr><b style="font-size:18px;">ยอดรวม ${data.total} ฿</b><hr>
             <div style="margin-top:10px; font-size:11px; white-space:pre-wrap;">${config.info}</div>
-            <p style="font-size:10px; color:#999;">${data.time}</p>
+            <p style="font-size:9px; color:#999; margin-top:10px;">${data.time}</p>
             <script>window.onload=function(){window.print();window.close();}<\/script></body></html>`);
     }
 
@@ -187,27 +195,33 @@
         if(n && p) { menu.push({name:n, price:p, stock:s, cat:c}); save(); renderAll(); }
     }
 
-    function renderEditList() {
-        document.getElementById("edit-list").innerHTML = menu.map((item, i) => `
-            <div class="mgr-card" style="display:flex; justify-content:space-between;">
-                <span>${item.name} (${item.cat})</span>
-                <button onclick="deleteItem(${i})" style="color:red; border:none; background:none;">ลบ</button>
-            </div>`).join("");
+    function updateSummary() {
+        let totalVal = sales.reduce((a, b) => a + b.total, 0);
+        let netVal = sales.reduce((a, b) => a + b.net, 0);
+        document.getElementById("sum-total").innerText = totalVal.toLocaleString() + " ฿";
+        document.getElementById("sum-net").innerText = netVal.toLocaleString() + " ฿";
     }
 
-    function deleteItem(i) { if(confirm("ลบเมนู?")) { menu.splice(i,1); save(); renderAll(); } }
     function saveConfig() {
         config.name = document.getElementById("conf-name").value;
+        config.desc = document.getElementById("conf-desc").value;
         config.info = document.getElementById("conf-info").value;
         config.gp_lm = Number(document.getElementById("gp-lm").value);
         config.gp_grab = Number(document.getElementById("gp-grab").value);
         save(); init(); alert("บันทึกสำเร็จ!");
     }
-    function save() {
-        localStorage.setItem("pos_pro_menu_v2", JSON.stringify(menu));
-        localStorage.setItem("pos_pro_sales_v2", JSON.stringify(sales));
-        localStorage.setItem("pos_pro_config_v2", JSON.stringify(config));
+
+    function renderEditList() {
+        document.getElementById("edit-list").innerHTML = menu.map((item, i) => `<div class="mgr-card" style="display:flex; justify-content:space-between;"><span>${item.name} (คลัง: ${item.stock})</span><button onclick="deleteItem(${i})" style="color:red; border:none; background:none;">ลบ</button></div>`).join("");
     }
+
+    function deleteItem(i) { if(confirm("ลบ?")) { menu.splice(i,1); save(); renderAll(); } }
+    function save() {
+        localStorage.setItem("pos_pro_menu_v3", JSON.stringify(menu));
+        localStorage.setItem("pos_pro_sales_v3", JSON.stringify(sales));
+        localStorage.setItem("pos_pro_config_v3", JSON.stringify(config));
+    }
+    function clearSales() { if(confirm("ล้างยอดขาย?")) { sales = []; save(); updateSummary(); } }
     function openManager() { document.getElementById("manager").style.display="block"; }
     function closeManager() { document.getElementById("manager").style.display="none"; }
     init();
