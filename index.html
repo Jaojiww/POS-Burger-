@@ -230,11 +230,22 @@
     }
 
     function renderEditList() {
-        document.getElementById("edit-list").innerHTML = menu.map((item, i) => `
-            <div class="mgr-card" style="display:flex; justify-content:space-between; align-items:center;">
-                <span>${item.name}</span>
-                <button onclick="deleteItem(${i})" style="color:red; border:none; background:none;">ลบ</button>
-            </div>`).join("");
+    document.getElementById("edit-list").innerHTML = menu.map((item, i) => `
+        <div class="mgr-card" style="display:flex; justify-content:space-between; align-items:center; border-left: 5px solid var(--primary);">
+            <div style="flex:1;">
+                <b style="font-size:16px;">${item.name}</b><br>
+                <small style="color:#666;">หมวดหมู่: ${item.cat}</small>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div style="text-align:center;">
+                    <small style="display:block; font-size:10px; color:#999;">จำนวนคลัง</small>
+                    <input type="number" value="${item.stock}" 
+                        oninput="updateStock(${i}, this.value)" 
+                        style="width:60px; margin:0; padding:8px; text-align:center; border:2px solid #eee; border-radius:8px; font-weight:bold;">
+                </div>
+                <button onclick="deleteItem(${i})" style="color:#ff4757; border:none; background:none; font-size:20px; padding:10px;">🗑️</button>
+            </div>
+        </div>`).join("");
     }
 
     function saveConfig() {
